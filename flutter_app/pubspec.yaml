@@ -1,0 +1,23 @@
+name: smart_takeaway
+description: 外卖与闪购多平台智能比价下单客户端（支持 Android / iOS，Siri 快捷指令 URL Scheme 桥接）
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.2.0
+  url_launcher: ^6.2.5
+  shared_preferences: ^2.2.3
+  app_links: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,53 @@
+name: Build SmartTakeaway (Flutter Android & iOS)
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test-and-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Initialize platform scaffolding if missing
+        working-directory: flutter_app
+        run: flutter create . --platforms=android,ios --org com.smarttakeaway
+      - name: Run Flutter unit tests
+        working-directory: flutter_app
+        run: flutter test
+      - name: Build Android APK
+        working-directory: flutter_app
+        run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smarttakeaway-android-apk
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios-unsigned:
+    runs-on: macos-latest
+    needs: test-and-android
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      - name: Initialize iOS scaffolding if missing
+        working-directory: flutter_app
+        run: flutter create . --platforms=ios --org com.smarttakeaway --project-name smart_takeaway
+      - name: Build iOS (no-codesign)
+        working-directory: flutter_app
+        run: flutter build ios --release --no-codesign
+      - name: Package unsigned IPA
+        working-directory: flutter_app/build/ios/iphoneos
+        run: |
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r SmartTakeaway-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: smarttakeaway-ios-unsigned-ipa
+          path: flutter_app/build/ios/iphoneos/SmartTakeaway-unsigned.ipa
