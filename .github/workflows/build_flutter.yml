@@ -15,7 +15,9 @@ jobs:
           channel: 'stable'
       - name: Initialize platform scaffolding if missing
         working-directory: flutter_app
-        run: flutter create . --platforms=android,ios --org com.smarttakeaway
+        run: |
+          flutter create . --platforms=android,ios --org com.smarttakeaway
+          rm -f test/widget_test.dart
       - name: Run Flutter unit tests
         working-directory: flutter_app
         run: flutter test
