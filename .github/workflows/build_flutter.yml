@@ -39,7 +39,22 @@ jobs:
           channel: 'stable'
       - name: Initialize iOS scaffolding if missing
         working-directory: flutter_app
-        run: flutter create . --platforms=ios --org com.smarttakeaway --project-name smart_takeaway
+        run: |
+          cp ios/Runner/Info.plist /tmp/Info.plist.custom
+          rm -f ios/Runner/Info.plist
+          flutter create . --platforms=ios --org com.smarttakeaway --project-name smart_takeaway
+          python3 - <<'EOF'
+          import plistlib
+          with open('ios/Runner/Info.plist', 'rb') as f:
+              gen = plistlib.load(f)
+          with open('/tmp/Info.plist.custom', 'rb') as f:
+              custom = plistlib.load(f)
+          for k in ['CFBundleDisplayName', 'CFBundleIdentifier', 'CFBundleURLTypes', 'LSApplicationQueriesSchemes', 'NSAppTransportSecurity']:
+              if k in custom:
+                  gen[k] = custom[k]
+          with open('ios/Runner/Info.plist', 'wb') as f:
+              plistlib.dump(gen, f)
+          EOF
       - name: Build iOS (no-codesign)
         working-directory: flutter_app
         run: flutter build ios --release --no-codesign
@@ -48,7 +63,7 @@ jobs:
         run: |
           mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r SmartTakeaway-unsigned.ipa Payload
+          zip -ry SmartTakeaway-unsigned.ipa Payload
       - uses: actions/upload-artifact@v4
         with:
           name: smarttakeaway-ios-unsigned-ipa
