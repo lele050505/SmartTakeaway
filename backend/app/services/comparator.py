@@ -8,6 +8,7 @@ from app.adapters.meituan_shangou import MeituanShangouAdapter
 from app.adapters.taobao_shangou import TaobaoShangouAdapter
 from app.schemas import CompareRequest, CompareResponse, PlatformQuote
 from app.config import MOCK_SIMULATION_ENABLED
+from app.services.location import geocode_address, haversine_km
 
 logger = logging.getLogger("SmartTakeaway.Comparator")
 
@@ -23,14 +24,17 @@ class TakeawayComparatorService:
 
     async def compare(self, req: CompareRequest) -> CompareResponse:
         keyword = req.keyword.strip()
+        lat, lon, resolved_addr = await geocode_address(
+            req.address, req.latitude, req.longitude
+        )
 
         # 并发并行向各大平台发起查询
         tasks = [
             adapter.fetch_quote(
                 keyword=keyword,
-                address=req.address,
-                latitude=req.latitude,
-                longitude=req.longitude
+                address=resolved_addr,
+                latitude=lat,
+                longitude=lon,
             )
             for adapter in self.adapters
         ]
@@ -64,8 +68,20 @@ class TakeawayComparatorService:
                 failed_platforms=failed_platforms
             )
 
-        # 核心排序：最终预估到手总价 (final_price) 升序排列
-        valid_quotes.sort(key=lambda q: q.price.final_price)
+        # 为 PoC 仿真门店补齐基于配送坐标的估算距离（真实接口已由 provider 计算）
+        for idx, q in enumerate(valid_quotes):
+            if q.distance_km is None:
+                offset = 0.005 * (idx + 1)
+                q.distance_km = haversine_km(lat, lon, lat + offset, lon + offset * 0.8)
+
+        # 核心排序：最终预估到手总价 (final_price) 升序，同价时按距离最近优先
+        valid_quotes.sort(
+            key=lambda q: (
+                q.price.final_price,
+                q.distance_km if q.distance_km is not None else 999.0,
+            )
+        )
+        has_real_store = any(bool(q.shop_id) for q in valid_quotes)
 
         best_quote = valid_quotes[0]
         worst_quote = valid_quotes[-1]
@@ -109,11 +125,14 @@ class TakeawayComparatorService:
         return CompareResponse(
             query=keyword,
             timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            resolved_address=resolved_addr,
+            latitude=lat,
+            longitude=lon,
             quotes=valid_quotes,
             best_quote=best_quote,
             max_saved_amount=max_saved,
             voice_speech_text=voice_text,
             summary="\n".join(summary_lines),
-            is_simulated=MOCK_SIMULATION_ENABLED,
+            is_simulated=MOCK_SIMULATION_ENABLED and not has_real_store,
             failed_platforms=failed_platforms
         )

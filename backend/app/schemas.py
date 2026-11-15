@@ -35,7 +35,9 @@ class PriceBreakdown(BaseModel):
 class PlatformQuote(BaseModel):
     platform_id: PlatformType
     platform_name: str
+    shop_id: Optional[str] = Field(None, description="真实门店ID（接入商家/联盟接口后用于直达门店页）")
     shop_name: str
+    distance_km: Optional[float] = Field(None, description="门店距配送地址距离（公里）")
     item_name: str
     item_specs: Optional[str] = "标准规格"
     item_image: Optional[str] = None
@@ -61,6 +63,9 @@ class CompareRequest(BaseModel):
 class CompareResponse(BaseModel):
     query: str
     timestamp: str
+    resolved_address: Optional[str] = Field(None, description="解析后的配送地址")
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     quotes: List[PlatformQuote]
     best_quote: Optional[PlatformQuote] = None
     max_saved_amount: float = 0.0

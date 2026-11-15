@@ -8,12 +8,16 @@ class MeituanWaimaiAdapter(BasePlatformAdapter):
     def __init__(self):
         super().__init__(PlatformType.MEITUAN_WAIMAI)
 
-    def build_deep_link(self, keyword: str, shop_name: str) -> str:
+    def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"imeituan://www.meituan.com/takeaway/restaurant?poi_id={urllib.parse.quote(shop_id)}&source=smart_takeaway"
         encoded_kw = urllib.parse.quote(keyword)
         # 美团官方标准 URL Scheme 深度搜索与直接调起店铺
         return f"imeituan://www.meituan.com/waimai/search?keyword={encoded_kw}&source=smart_takeaway"
 
-    def build_web_url(self, keyword: str) -> str:
+    def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"https://waimai.meituan.com/restaurant/{urllib.parse.quote(shop_id)}"
         encoded_kw = urllib.parse.quote(keyword)
         return f"https://waimai.meituan.com/search?q={encoded_kw}"
 
@@ -24,6 +28,10 @@ class MeituanWaimaiAdapter(BasePlatformAdapter):
         latitude: Optional[float] = None,
         longitude: Optional[float] = None
     ) -> Optional[PlatformQuote]:
+        real_quote = await self.try_fetch_real_quote(keyword, latitude, longitude)
+        if real_quote is not None:
+            return real_quote
+
         # 智能价格估算引擎：模拟美团外卖专送与会员大额神券生态
         kw = keyword.strip()
         shop_name = f"{kw[:4]}精选料理(美团旗舰店)"

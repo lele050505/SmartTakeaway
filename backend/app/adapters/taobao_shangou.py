@@ -8,12 +8,16 @@ class TaobaoShangouAdapter(BasePlatformAdapter):
     def __init__(self):
         super().__init__(PlatformType.TAOBAO_SHANGOU)
 
-    def build_deep_link(self, keyword: str, shop_name: str) -> str:
+    def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"taobao://takeaway/shop?shopId={urllib.parse.quote(shop_id)}&source=smart_takeaway"
         encoded_kw = urllib.parse.quote(keyword)
         # 淘宝闪购（淘宝App小时达/淘鲜达同城零售）URL Scheme
         return f"taobao://s.taobao.com/search?q={encoded_kw}&tab=takeaway&source=smart_takeaway"
 
-    def build_web_url(self, keyword: str) -> str:
+    def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"https://shop.m.taobao.com/shop/shop_index.htm?shop_id={urllib.parse.quote(shop_id)}"
         encoded_kw = urllib.parse.quote(keyword)
         return f"https://s.taobao.com/search?q={encoded_kw}"
 
@@ -24,6 +28,10 @@ class TaobaoShangouAdapter(BasePlatformAdapter):
         latitude: Optional[float] = None,
         longitude: Optional[float] = None
     ) -> Optional[PlatformQuote]:
+        real_quote = await self.try_fetch_real_quote(keyword, latitude, longitude)
+        if real_quote is not None:
+            return real_quote
+
         kw = keyword.strip()
         shop_name = "淘鲜达·大润发小时达"
         if any(b in kw for b in ["咖啡", "拿铁", "美式"]):

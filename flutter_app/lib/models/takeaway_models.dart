@@ -55,7 +55,9 @@ class PriceBreakdown {
 class PlatformQuote {
   final PlatformType platformId;
   final String platformName;
+  final String? shopId;
   final String shopName;
+  final double? distanceKm;
   final String itemName;
   final String? itemSpecs;
   final PriceBreakdown price;
@@ -71,7 +73,9 @@ class PlatformQuote {
   const PlatformQuote({
     required this.platformId,
     required this.platformName,
+    this.shopId,
     required this.shopName,
+    this.distanceKm,
     required this.itemName,
     this.itemSpecs,
     required this.price,
@@ -89,7 +93,9 @@ class PlatformQuote {
     return PlatformQuote(
       platformId: PlatformType.fromId(json['platform_id'] as String? ?? ''),
       platformName: json['platform_name'] as String? ?? '',
+      shopId: json['shop_id'] as String?,
       shopName: json['shop_name'] as String? ?? '',
+      distanceKm: (json['distance_km'] as num?)?.toDouble(),
       itemName: json['item_name'] as String? ?? '',
       itemSpecs: json['item_specs'] as String?,
       price: PriceBreakdown.fromJson(json['price'] as Map<String, dynamic>),

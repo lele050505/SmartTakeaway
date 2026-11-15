@@ -8,12 +8,16 @@ class ElemeAdapter(BasePlatformAdapter):
     def __init__(self):
         super().__init__(PlatformType.ELEME)
 
-    def build_deep_link(self, keyword: str, shop_name: str) -> str:
+    def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"eleme://restaurant?restaurant_id={urllib.parse.quote(shop_id)}&source=smart_takeaway"
         encoded_kw = urllib.parse.quote(keyword)
         # 饿了么官方 URL Scheme 深度调起
         return f"eleme://search?keyword={encoded_kw}&source=smart_takeaway"
 
-    def build_web_url(self, keyword: str) -> str:
+    def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"https://h5.ele.me/shop/#id={urllib.parse.quote(shop_id)}"
         encoded_kw = urllib.parse.quote(keyword)
         return f"https://h5.ele.me/msite/search?keyword={encoded_kw}"
 
@@ -24,6 +28,10 @@ class ElemeAdapter(BasePlatformAdapter):
         latitude: Optional[float] = None,
         longitude: Optional[float] = None
     ) -> Optional[PlatformQuote]:
+        real_quote = await self.try_fetch_real_quote(keyword, latitude, longitude)
+        if real_quote is not None:
+            return real_quote
+
         kw = keyword.strip()
         shop_name = f"{kw[:4]}品质餐厅(饿了么蜂鸟店)"
         if any(b in kw for b in ["咖啡", "拿铁", "美式", "瑞幸"]):

@@ -80,7 +80,7 @@ class QuoteCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
-                      '${quote.shopName} · ${quote.deliveryEtaMinutes}分钟',
+                      '${quote.shopName}${quote.distanceKm != null ? ' · ${quote.distanceKm!.toStringAsFixed(1)}km' : ''} · ${quote.deliveryEtaMinutes}分钟',
                       style: const TextStyle(
                         fontSize: 12.5,
                         color: Color(0xFF777777),

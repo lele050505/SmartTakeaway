@@ -8,12 +8,16 @@ class MeituanShangouAdapter(BasePlatformAdapter):
     def __init__(self):
         super().__init__(PlatformType.MEITUAN_SHANGOU)
 
-    def build_deep_link(self, keyword: str, shop_name: str) -> str:
+    def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"imeituan://www.meituan.com/takeaway/shangou/shop?poi_id={urllib.parse.quote(shop_id)}&source=smart_takeaway"
         encoded_kw = urllib.parse.quote(keyword)
         # 美团闪购（即时零售超市便利）专属 Scheme 深度链接
         return f"imeituan://www.meituan.com/takeaway/shangou/search?keyword={encoded_kw}&source=smart_takeaway"
 
-    def build_web_url(self, keyword: str) -> str:
+    def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
+        if shop_id:
+            return f"https://waimai.meituan.com/shangou/shop/{urllib.parse.quote(shop_id)}"
         encoded_kw = urllib.parse.quote(keyword)
         return f"https://waimai.meituan.com/shangou/search?keyword={encoded_kw}"
 
@@ -24,6 +28,10 @@ class MeituanShangouAdapter(BasePlatformAdapter):
         latitude: Optional[float] = None,
         longitude: Optional[float] = None
     ) -> Optional[PlatformQuote]:
+        real_quote = await self.try_fetch_real_quote(keyword, latitude, longitude)
+        if real_quote is not None:
+            return real_quote
+
         kw = keyword.strip()
         shop_name = "美团闪购·罗森便利店/全家"
         # 闪购（即时零售）在零售快消、瓶装饮料、应急百货、生鲜零食往往有超低秒杀价，且打包费极低
