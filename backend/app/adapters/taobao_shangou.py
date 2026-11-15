@@ -10,10 +10,10 @@ class TaobaoShangouAdapter(BasePlatformAdapter):
 
     def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
         if shop_id:
-            return f"taobao://takeaway/shop?shopId={urllib.parse.quote(shop_id)}&source=smart_takeaway"
+            return f"taobao://shop.m.taobao.com/shop/shop_index.htm?shop_id={urllib.parse.quote(shop_id)}"
         encoded_kw = urllib.parse.quote(keyword)
-        # 淘宝闪购（淘宝App小时达/淘鲜达同城零售）URL Scheme
-        return f"taobao://s.taobao.com/search?q={encoded_kw}&tab=takeaway&source=smart_takeaway"
+        # 淘宝 App 商品搜索直达 URL Scheme（注意无 /search 路径）
+        return f"taobao://s.taobao.com?q={encoded_kw}"
 
     def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
         if shop_id:

@@ -10,10 +10,10 @@ class MeituanWaimaiAdapter(BasePlatformAdapter):
 
     def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
         if shop_id:
-            return f"imeituan://www.meituan.com/takeaway/restaurant?poi_id={urllib.parse.quote(shop_id)}&source=smart_takeaway"
+            return f"imeituan://www.meituan.com/takeaway/restaurant?poi_id={urllib.parse.quote(shop_id)}"
         encoded_kw = urllib.parse.quote(keyword)
-        # 美团官方标准 URL Scheme 深度搜索与直接调起店铺
-        return f"imeituan://www.meituan.com/waimai/search?keyword={encoded_kw}&source=smart_takeaway"
+        # 美团 App 标准全站搜索直达 URL Scheme
+        return f"imeituan://www.meituan.com/search?q={encoded_kw}"
 
     def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
         if shop_id:

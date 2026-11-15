@@ -10,10 +10,12 @@ class ElemeAdapter(BasePlatformAdapter):
 
     def build_deep_link(self, keyword: str, shop_name: str, shop_id: Optional[str] = None) -> str:
         if shop_id:
-            return f"eleme://restaurant?restaurant_id={urllib.parse.quote(shop_id)}&source=smart_takeaway"
+            h5_shop = urllib.parse.quote(f"https://h5.ele.me/shop/#id={urllib.parse.quote(shop_id)}", safe="")
+            return f"eleme://web?url={h5_shop}"
         encoded_kw = urllib.parse.quote(keyword)
-        # 饿了么官方 URL Scheme 深度调起
-        return f"eleme://search?keyword={encoded_kw}&source=smart_takeaway"
+        h5_search = urllib.parse.quote(f"https://h5.ele.me/msite/search?keyword={encoded_kw}", safe="")
+        # 饿了么官方内嵌容器直达搜索结果页 URL Scheme
+        return f"eleme://web?url={h5_search}"
 
     def build_web_url(self, keyword: str, shop_id: Optional[str] = None) -> str:
         if shop_id:

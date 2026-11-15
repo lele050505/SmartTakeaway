@@ -7,9 +7,8 @@ class TakeawayApiService {
   static const String _baseUrlKey = 'server_base_url';
   static const String _addressKey = 'default_delivery_address';
 
-  /// Android 模拟器访问宿主机 (Windows) 默认地址为 10.0.2.2
-  /// 真机调试请改为宿主机局域网 IP（如 http://192.168.1.100:8000）
-  static const String defaultEmulatorUrl = 'http://10.0.2.2:8000';
+  /// 默认优先连接宿主机局域网 IP（真机与模拟器通用兜底）
+  static const String defaultEmulatorUrl = 'http://10.100.164.230:8000';
 
   Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
@@ -108,18 +107,20 @@ class TakeawayApiService {
       finalPrice: 17.0,
     );
 
+    final elemeH5 = Uri.encodeComponent('https://h5.ele.me/msite/search?keyword=$encoded');
     final quotes = [
       PlatformQuote(
         platformId: PlatformType.meituanShangou,
         platformName: '美团闪购',
         shopName: '连锁便利闪购极速仓',
+        distanceKm: 0.8,
         itemName: kw,
         itemSpecs: '现货极速达',
         price: pShangou,
         deliveryEtaMinutes: 20,
         shopRating: 4.95,
         monthlySales: 4600,
-        deepLink: 'imeituan://www.meituan.com/takeaway/shangou/search?keyword=$encoded',
+        deepLink: 'imeituan://www.meituan.com/search?q=$encoded',
         webFallbackUrl: 'https://waimai.meituan.com/shangou/search?keyword=$encoded',
         isBestDeal: true,
         savedAmount: 6.5,
@@ -129,13 +130,14 @@ class TakeawayApiService {
         platformId: PlatformType.taobaoShangou,
         platformName: '淘宝闪购',
         shopName: '淘鲜达小时达专营店',
+        distanceKm: 1.2,
         itemName: kw,
         itemSpecs: '正品小时达',
         price: pTaobao,
         deliveryEtaMinutes: 22,
         shopRating: 4.88,
         monthlySales: 3800,
-        deepLink: 'taobao://s.taobao.com/search?q=$encoded&tab=takeaway',
+        deepLink: 'taobao://s.taobao.com?q=$encoded',
         webFallbackUrl: 'https://s.taobao.com/search?q=$encoded',
         isBestDeal: false,
         savedAmount: 3.0,
@@ -145,13 +147,14 @@ class TakeawayApiService {
         platformId: PlatformType.eleme,
         platformName: '饿了么',
         shopName: '$kw旗舰店(蜂鸟即配)',
+        distanceKm: 1.4,
         itemName: kw,
         itemSpecs: '标准规格',
         price: pEleme,
         deliveryEtaMinutes: 25,
         shopRating: 4.85,
         monthlySales: 2900,
-        deepLink: 'eleme://search?keyword=$encoded',
+        deepLink: 'eleme://web?url=$elemeH5',
         webFallbackUrl: 'https://h5.ele.me/msite/search?keyword=$encoded',
         isBestDeal: false,
         savedAmount: 2.5,
@@ -161,13 +164,14 @@ class TakeawayApiService {
         platformId: PlatformType.meituanWaimai,
         platformName: '美团外卖',
         shopName: '$kw专营店(美团专送)',
+        distanceKm: 1.8,
         itemName: kw,
         itemSpecs: '标准规格',
         price: pMeituan,
         deliveryEtaMinutes: 28,
         shopRating: 4.90,
         monthlySales: 3200,
-        deepLink: 'imeituan://www.meituan.com/waimai/search?keyword=$encoded',
+        deepLink: 'imeituan://www.meituan.com/search?q=$encoded',
         webFallbackUrl: 'https://waimai.meituan.com/search?q=$encoded',
         isBestDeal: false,
         savedAmount: 0.0,
