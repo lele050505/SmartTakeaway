@@ -49,7 +49,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() {
         _isConnected = ok;
-        _statusText = ok ? '已成功连通后端服务！' : '无法连接到 $url，请确认后端已启动且在同一局域网。';
+        _statusText = ok
+            ? '设置已保存，已成功连通后端服务！'
+            : '地址已保存（当前未连上 $url，将自动使用本地离线比价兜底；如需连电脑后端，请填写局域网 IP 并保持 FastAPI 运行）';
       });
     }
   }

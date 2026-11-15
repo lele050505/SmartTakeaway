@@ -27,7 +27,6 @@ class HomeScreenState extends State<HomeScreen> {
   final TakeawayApiService _apiService = TakeawayApiService();
   final HistoryService _historyService = HistoryService();
 
-  List<String> _presets = ['生椰拿铁', '可口可乐', '麦当劳', '霸王茶姬', '抽纸'];
   CompareResponse? _result;
   CouponClaimAllResponse? _couponResult;
   bool _isLoading = false;
@@ -39,7 +38,6 @@ class HomeScreenState extends State<HomeScreen> {
     if (widget.initialKeyword != null && widget.initialKeyword!.isNotEmpty) {
       _searchController.text = widget.initialKeyword!;
     }
-    _loadPresets();
     runComparison();
   }
 
@@ -47,13 +45,6 @@ class HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadPresets() async {
-    final favs = await _historyService.getFavorites();
-    if (mounted) {
-      setState(() => _presets = favs);
-    }
   }
 
   /// 供外部 Deep Link (如 smarttakeaway://compare?q=...) 直接触发比价
@@ -155,7 +146,6 @@ class HomeScreenState extends State<HomeScreen> {
               final kw = _searchController.text.trim();
               if (kw.isEmpty) return;
               await _historyService.toggleFavorite(kw);
-              await _loadPresets();
               if (!context.mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -193,6 +183,7 @@ class HomeScreenState extends State<HomeScreen> {
                       controller: _searchController,
                       style: const TextStyle(fontSize: 14, color: Color(0xFF111111)),
                       textInputAction: TextInputAction.search,
+                      onChanged: (_) => setState(() {}),
                       onSubmitted: (_) => runComparison(),
                       decoration: const InputDecoration(
                         hintText: '搜想吃的外卖或商品...',
@@ -202,6 +193,16 @@ class HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+                  if (_searchController.text.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 17, color: Color(0xFF999999)),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() {});
+                      },
+                    ),
                   Padding(
                     padding: const EdgeInsets.only(right: 5),
                     child: SizedBox(
@@ -234,48 +235,6 @@ class HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                 ],
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // 极简常用词条
-            SizedBox(
-              height: 32,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _presets.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, idx) {
-                  final kw = _presets[idx];
-                  final selected = _searchController.text.trim() == kw;
-                  return GestureDetector(
-                    onTap: () {
-                      _searchController.text = kw;
-                      runComparison();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: selected ? const Color(0xFF111111) : Colors.white,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: selected
-                              ? const Color(0xFF111111)
-                              : const Color(0xFFE6E6E2),
-                        ),
-                      ),
-                      child: Text(
-                        kw,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                          color: selected ? Colors.white : const Color(0xFF555555),
-                        ),
-                      ),
-                    ),
-                  );
-                },
               ),
             ),
             const SizedBox(height: 16),
